@@ -3,7 +3,8 @@ import time
 
 from .driver import dll
 from .errors import VMRError, VMRDriverError
-from .strips import InputStrip
+from .input import InputStrip
+from .output import OutputBus
 
 
 class VMRemote:
@@ -18,17 +19,20 @@ class VMRemote:
     else:
       raise VMRError(f'Invalid Voicemeeter version: {version}')
 
-  def _call(self, fn, *args, throw=True, expected=(0,)):
+  def __init__(self):
+    self.cache = {}
+
+  def _call(self, fn, *args, check=True, expected=(0,)):
     fn_name = 'VBVMR_' + fn
     retval = getattr(dll, fn_name)(*args)
-    if throw and retval not in expected:
+    if check and retval not in expected:
       raise VMRDriverError(fn_name, retval)
-    time.sleep(.5)
+    time.sleep(.1)
     return retval
 
   def _login(self):
     self._call('Login')
-    time.sleep(.5)
+    time.sleep(.3)
     self.dirty
   def _logout(self):
     self._call('Logout')
@@ -62,16 +66,27 @@ class VMRemote:
     val = self._call('IsParametersDirty', expected=(0,1))
     return (val == 1)
   
-  def get(self, param, numeric=True):
-    print(f'GET {param}')
+  def get(self, param, string=False, ascii=False):
     param = param.encode('ascii')
-    if numeric:
+    if not self.dirty:
+      if param in self.cache:
+        print(f'HIT {param}')
+        return self.cache[param]
+
+    print(f'GET {param}')
+    if string:
+      if ascii:
+        buf = (ct.c_char * 512)()
+        self._call('GetParameterStringA', param, ct.byref(buf))
+      else:
+        buf = (ct.c_wchar * 512)()
+        self._call('GetParameterStringW', param, ct.byref(buf))
+    else:
       buf = ct.c_float()
       self._call('GetParameterFloat', param, ct.byref(buf))
-      return buf.value
-
-    else:
-      raise NotImplementedError()
+    val = buf.value
+    self.cache[param] = val
+    return val
 
   def __enter__(self):
     self._login()
@@ -81,13 +96,16 @@ class VMRemote:
 
 
 class VMBasicRemote(VMRemote):
-  pass
+  def __init__(self, *args, **kwargs):
+    super().__init__(*args, **kwargs)
+    self.inputs = [InputStrip.make((i < 2), self, i) for i in range(2+1)]
 
 class VMBananaRemote(VMRemote):
-  pass
+  def __init__(self, *args, **kwargs):
+    super().__init__(*args, **kwargs)
+    self.inputs = [InputStrip.make((i < 3), self, i) for i in range(3+2)]
 
 class VMPotatoRemote(VMRemote):
   def __init__(self, *args, **kwargs):
     super().__init__(*args, **kwargs)
-    
-    self.inputs = [InputStrip(self, i, is_virtual=(i >= 5)) for i in range(8)]
+    self.inputs = [InputStrip.make((i < 5), self, i) for i in range(5+3)]
