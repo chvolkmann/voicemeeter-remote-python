@@ -1,5 +1,4 @@
-from vmr import VMRemote
-import time
+import vmr
 
-with VMRemote.make('potato') as remote:
+with vmr.connect('potato') as remote:
   remote.outputs[2].mute = 0

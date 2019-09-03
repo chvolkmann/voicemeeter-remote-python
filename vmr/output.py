@@ -1,6 +1,6 @@
 # param_name => is_numeric
 from .errors import VMRError
-from .util import VMElement, bool_prop, str_prop, float_prop
+from .strip import VMElement, bool_prop, str_prop, float_prop
 
 class OutputBus(VMElement):
   @classmethod

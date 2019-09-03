@@ -8,17 +8,6 @@ from .output import OutputBus
 
 
 class VMRemote:
-  @classmethod
-  def make(cls, version, *args, **kwargs):
-    if version == 1:
-      return VMBasicRemote(*args, **kwargs)
-    elif version in (2, 'banana'):
-      return VMBananaRemote(*args, **kwargs)
-    elif version in (3, 'potato'):
-      return VMPotatoRemote(*args, **kwargs)
-    else:
-      raise VMRError(f'Invalid Voicemeeter version: {version}')
-
   def __init__(self):
     self.cache = {}
 
@@ -103,12 +92,13 @@ class VMRemote:
 class VMBasicRemote(VMRemote):
   def __init__(self, *args, **kwargs):
     super().__init__(*args, **kwargs)
-    self.inputs = [InputStrip.make((i < 2), self, i) for i in range(2+1)]
+    raise NotImplementedError()
 
 class VMBananaRemote(VMRemote):
   def __init__(self, *args, **kwargs):
     super().__init__(*args, **kwargs)
     self.inputs = [InputStrip.make((i < 3), self, i) for i in range(3+2)]
+    self.outputs = [OutputBus.make((i < 3), self, i) for i in range(3+2)]
 
 class VMPotatoRemote(VMRemote):
   def __init__(self, *args, **kwargs):
