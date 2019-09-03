@@ -1,18 +1,23 @@
-import os
-import shutil
+from os import path
+import sys
+import platform
 import ctypes
 
-from .util import project_path
 from .errors import VMRError
 
-VM_BASE_PATH = os.path.join(os.path.expandvars('%ProgramFiles(x86)%'), 'VB', 'Voicemeeter')
-def vm_path(*fragments):
-  return os.path.join(VM_BASE_PATH, *fragments)
+bits = 64 if sys.maxsize > 2**32 else 32
+os = platform.system()
 
-dll_src = vm_path('VoicemeeterRemote64.dll')
-dll_dst = project_path('vendor', 'VoicemeeterRemote64.dll')
-if not os.path.exists(project_path('vendor', 'VoicemeeterRemote64.dll')):
-  shutil.copy(dll_src, dll_dst)
+if os != 'Windows' or bits != 64:
+  raise VMRError('The vmr package only supports Windows 64-bit')
 
 
-dll = ctypes.cdll.LoadLibrary(dll_dst)
+DLL_NAME = 'VoicemeeterRemote64.dll'
+
+vm_base = path.join(path.expandvars('%ProgramFiles(x86)%'), 'VB', 'Voicemeeter')
+dll_path = path.join(vm_base, DLL_NAME)
+
+if not path.exists(dll_path):
+  raise VMRError(f'Could not find {DLL_NAME}')
+
+dll = ctypes.cdll.LoadLibrary(dll_path)

@@ -6,6 +6,7 @@ from .errors import VMRError, VMRDriverError
 from .input import InputStrip
 from .output import OutputBus
 
+DELAY = .1
 
 class VMRemote:
   def __init__(self):
@@ -16,12 +17,11 @@ class VMRemote:
     retval = getattr(dll, fn_name)(*args)
     if check and retval not in expected:
       raise VMRDriverError(fn_name, retval)
-    time.sleep(.1)
+    time.sleep(DELAY)
     return retval
 
   def _login(self):
     self._call('Login')
-    time.sleep(.3)
   def _logout(self):
     self._call('Logout')
   
