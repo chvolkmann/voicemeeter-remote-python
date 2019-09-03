@@ -58,10 +58,8 @@ class VMRemote:
     param = param.encode('ascii')
     if not self.dirty:
       if param in self.cache:
-        print(f'HIT {param}')
         return self.cache[param]
 
-    print(f'GET {param}')
     if string:
       buf = (ct.c_wchar * 512)()
       self._call('GetParameterStringW', param, ct.byref(buf))
