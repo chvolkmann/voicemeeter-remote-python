@@ -1,4 +1,8 @@
 import vmr
+import time
 
 with vmr.connect('potato') as remote:
-  remote.outputs[2].mute = 0
+  remote.inputs[6].A4 = True
+  time.sleep(1)
+  remote.inputs[6].A4 = False
+  print(remote.inputs[6].A4)

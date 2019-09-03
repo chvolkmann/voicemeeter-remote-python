@@ -55,6 +55,7 @@ class VMRemote:
     return (val == 1)
   
   def get(self, param, string=False):
+    print('GET', param)
     param = param.encode('ascii')
     if not self.dirty:
       if param in self.cache:
@@ -71,6 +72,7 @@ class VMRemote:
     return val
   
   def set(self, param, val):
+    print('SET', param)
     param = param.encode('ascii')
     if isinstance(val, str):
       if len(val) >= 512:
@@ -95,11 +97,11 @@ class VMBasicRemote(VMRemote):
 class VMBananaRemote(VMRemote):
   def __init__(self, *args, **kwargs):
     super().__init__(*args, **kwargs)
-    self.inputs = [InputStrip.make((i < 3), self, i) for i in range(3+2)]
+    self.inputs = [InputStrip.make((i < 3), 'banana', self, i) for i in range(3+2)]
     self.outputs = [OutputBus.make((i < 3), self, i) for i in range(3+2)]
 
 class VMPotatoRemote(VMRemote):
   def __init__(self, *args, **kwargs):
     super().__init__(*args, **kwargs)
-    self.inputs = [InputStrip.make((i < 5), self, i) for i in range(5+3)]
+    self.inputs = [InputStrip.make((i < 5), 'potato', self, i) for i in range(5+3)]
     self.outputs = [OutputBus.make((i < 5), self, i) for i in range(5+3)]
