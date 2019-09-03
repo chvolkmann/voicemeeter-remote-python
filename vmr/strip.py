@@ -34,11 +34,11 @@ def float_prop(param, range=None):
     val = self.get(param)
     if range:
       lo, hi = range
-      val = (val+lo)/(lo+hi)
+      val = (val-lo)/(hi-lo)
     return val
   def setter(self, val):
     if range:
       lo, hi = range
-      val = val*(lo+hi)-lo
+      val = val*(hi-lo)+lo
     return self.set(param, val)
   return property(getter, setter)
