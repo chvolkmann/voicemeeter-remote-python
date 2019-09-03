@@ -7,10 +7,9 @@ from .input import InputStrip
 from .output import OutputBus
 from . import kinds
 
-DELAY = .1
-
 class VMRemote:
-  def __init__(self):
+  def __init__(self, delay=.015):
+    self.delay = delay
     self.cache = {}
 
   def _call(self, fn, *args, check=True, expected=(0,)):
@@ -18,7 +17,7 @@ class VMRemote:
     retval = getattr(dll, fn_name)(*args)
     if check and retval not in expected:
       raise VMRDriverError(fn_name, retval)
-    time.sleep(DELAY)
+    time.sleep(self.delay)
     return retval
 
   def _login(self):
@@ -81,7 +80,18 @@ class VMRemote:
       self._call('SetParameterStringW', param, ct.c_wchar_p(val))
     else:
       self._call('SetParameterFloat', param, ct.c_float(float(val)))
-      
+  
+  def apply(self, **mapping):
+    for key, submapping in mapping.items():
+      strip, index = key.split('-')
+      index = int(index)
+      if strip in ('in', 'input'):
+        target = self.inputs[index]
+      elif strip in ('out', 'output'):
+        target = self.outputs[index]
+      else:
+        raise ValueError(strip)
+      target.apply(**submapping)
 
   def __enter__(self):
     self._login()

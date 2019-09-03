@@ -24,6 +24,10 @@ class InputStrip(VMElement):
   gate = float_prop('Gate', range=(0,10))
 
   label = str_prop('Label')
+
+  def apply(self, **mapping):
+    for key, val in mapping.items():
+      setattr(self, key, val)
   
 class PhysicalInputStrip(InputStrip):
   mono = bool_prop('Mono')
@@ -35,8 +39,8 @@ class VirtualInputStrip(InputStrip):
 def _make_strip_mixin(kind):
   num_A, num_B = kind.layout
   return type(f'StripMixin{kind.name}', (), {
-    **{f'A{i}': bool_prop(f'A{i}') for i in range(num_A)},
-    **{f'B{i}': bool_prop(f'B{i}') for i in range(num_B)}
+    **{f'A{i}': bool_prop(f'A{i}') for i in range(1, num_A+1)},
+    **{f'B{i}': bool_prop(f'B{i}') for i in range(1, num_B+1)}
   })
 
 _strip_mixins = {kind.id: _make_strip_mixin(kind) for kind in kinds.all}
