@@ -1,55 +1,28 @@
 # param_name => is_numeric
 from .errors import VMRError
+from .util import VMElement, bool_prop, str_prop, float_prop
 
-class InputStrip:
+class InputStrip(VMElement):
   @classmethod
   def make(cls, is_physical, *args, **kwargs):
     IS_cls = PhysicalInputStrip if is_physical else VirtualInputStrip
     return IS_cls(*args, **kwargs)
 
-  def __init__(self, remote, index):
-    self._remote = remote
-    self.index = index
-
   @property
   def identifier(self):
     return f'Strip[{self.index}]'
   
-  def get(self, param, **kwargs):
-    return self._remote.get(f'{self.identifier}.{param}', **kwargs)
+  solo = bool_prop('Solo')
+  mute = bool_prop('Mute')
   
-  @property
-  def solo(self):
-    return (self.get('Solo') == 1)
-  @property
-  def mute(self):
-    return (self.get('Mute') == 1)
-  
-  @property
-  def gain(self):
-    val = self.get('Gain')
-    return (val+60)/60
-  @property
-  def comp(self):
-    return self.get('Comp') / 10
-  @property
-  def gate(self):
-    return self.get('Gate') / 10
-  
-  @property
-  def label(self):
-    return self.get('Label', string=True)
+  gain = float_prop('Gain', range=(-60,12))
+  comp = float_prop('Comp', range=(0,10))
+  gate = float_prop('Gate', range=(0,10))
+
+  label = str_prop('Label')
   
 class PhysicalInputStrip(InputStrip):
-  @property
-  def mono(self):
-    return (self.get('Mono') == 1)
-  
-  @property
-  def device_name(self):
-    return self.get('device', string=True)
+  mono = bool_prop('Mono')
 
 class VirtualInputStrip(InputStrip):
-  @property
-  def mc(self):
-    return (self.get('Mono') == 1)
+  mc = bool_prop('MC')

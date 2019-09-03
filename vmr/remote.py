@@ -33,7 +33,6 @@ class VMRemote:
   def _login(self):
     self._call('Login')
     time.sleep(.3)
-    self.dirty
   def _logout(self):
     self._call('Logout')
   
@@ -66,7 +65,7 @@ class VMRemote:
     val = self._call('IsParametersDirty', expected=(0,1))
     return (val == 1)
   
-  def get(self, param, string=False, ascii=False):
+  def get(self, param, string=False):
     param = param.encode('ascii')
     if not self.dirty:
       if param in self.cache:
@@ -75,18 +74,24 @@ class VMRemote:
 
     print(f'GET {param}')
     if string:
-      if ascii:
-        buf = (ct.c_char * 512)()
-        self._call('GetParameterStringA', param, ct.byref(buf))
-      else:
-        buf = (ct.c_wchar * 512)()
-        self._call('GetParameterStringW', param, ct.byref(buf))
+      buf = (ct.c_wchar * 512)()
+      self._call('GetParameterStringW', param, ct.byref(buf))
     else:
       buf = ct.c_float()
       self._call('GetParameterFloat', param, ct.byref(buf))
     val = buf.value
     self.cache[param] = val
     return val
+  
+  def set(self, param, val):
+    param = param.encode('ascii')
+    if isinstance(val, str):
+      if len(val) >= 512:
+        raise VMRError('String is too long')
+      self._call('SetParameterStringW', param, ct.c_wchar_p(val))
+    else:
+      self._call('SetParameterFloat', param, ct.c_float(float(val)))
+      
 
   def __enter__(self):
     self._login()
@@ -109,3 +114,4 @@ class VMPotatoRemote(VMRemote):
   def __init__(self, *args, **kwargs):
     super().__init__(*args, **kwargs)
     self.inputs = [InputStrip.make((i < 5), self, i) for i in range(5+3)]
+    self.outputs = [OutputBus.make((i < 5), self, i) for i in range(5+3)]
