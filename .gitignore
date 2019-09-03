@@ -1,0 +1,14 @@
+**/__pycache__
+
+build
+dist
+*.egg-info
+
+.vscode
+venv
+
+old
+vendor/VoicemeeterRemoteAPI.pdf
+vendor/VoicemeeterRemote.h
+vendor/VoicemeeterRemote.dll
+vendor/VoicemeeterRemote64.dll
