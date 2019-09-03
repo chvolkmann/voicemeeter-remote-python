@@ -1,15 +1,12 @@
 from .errors import VMRError
 from .strip import VMElement, bool_prop, str_prop, float_prop
+from . import kinds
 
 class InputStrip(VMElement):
   @classmethod
-  def make(cls, is_physical, version, remote, index, **kwargs):
-    if version == 'banana':
-      IS_cls = PhysicalInputStripBanana if is_physical else VirtualInputStripBanana
-    elif version == 'potato':
-      IS_cls = PhysicalInputStripPotato if is_physical else VirtualInputStripPotato
-    else:
-      raise NotImplementedError()
+  def make(cls, is_physical, remote, index, **kwargs):
+    PhysStrip, VirtStrip = _strip_pairs[remote.kind.id]
+    IS_cls = PhysStrip if is_physical else VirtStrip
     return IS_cls(remote, index, **kwargs)
 
   def __init__(self, remote, index):
@@ -34,19 +31,20 @@ class PhysicalInputStrip(InputStrip):
 class VirtualInputStrip(InputStrip):
   mc = bool_prop('MC')
 
-BANANA_LAYOUT = (3, 2)
-BananaMixin = type('BananaMixin', (), {
-  **{f'A{i}': bool_prop(f'A{i}') for i in range(BANANA_LAYOUT[0])},
-  **{f'B{i}': bool_prop(f'B{i}') for i in range(BANANA_LAYOUT[1])}
-})
 
-POTATO_LAYOUT = (5, 3)
-PotatoMixin = type('PotatoMixin', (), {
-  **{f'A{i}': bool_prop(f'A{i}') for i in range(POTATO_LAYOUT[0])},
-  **{f'B{i}': bool_prop(f'B{i}') for i in range(POTATO_LAYOUT[1])}
-})
+def _make_strip_mixin(kind):
+  num_A, num_B = kind.layout
+  return type(f'StripMixin{kind.name}', (), {
+    **{f'A{i}': bool_prop(f'A{i}') for i in range(num_A)},
+    **{f'B{i}': bool_prop(f'B{i}') for i in range(num_B)}
+  })
 
-PhysicalInputStripBanana = type('PhysicalInputStripBanana', (PhysicalInputStrip, BananaMixin), {})
-VirtualInputStripBanana = type('VirtualInputStripBanana', (PhysicalInputStrip, BananaMixin), {})
-PhysicalInputStripPotato = type('PhysicalInputStripPotato', (PhysicalInputStrip, PotatoMixin), {})
-VirtualInputStripPotato = type('VirtualInputStripPotato', (VirtualInputStrip, PotatoMixin), {})
+_strip_mixins = {kind.id: _make_strip_mixin(kind) for kind in kinds.all}
+
+def _make_strip_pair(kind):
+  StripMixin = _strip_mixins[kind.id]
+  PhysStrip = type(f'PhysicalInputStrip{kind.name}', (PhysicalInputStrip, StripMixin), {})
+  VirtStrip = type(f'VirtualInputStrip{kind.name}', (VirtualInputStrip, StripMixin), {})
+  return (PhysStrip, VirtStrip)
+
+_strip_pairs = {kind.id: _make_strip_pair(kind) for kind in kinds.all}

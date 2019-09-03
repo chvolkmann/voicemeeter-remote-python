@@ -5,6 +5,7 @@ from .driver import dll
 from .errors import VMRError, VMRDriverError
 from .input import InputStrip
 from .output import OutputBus
+from . import kinds
 
 DELAY = .1
 
@@ -31,13 +32,13 @@ class VMRemote:
     self._call('GetVoicemeeterType', ct.byref(buf))
     val = buf.value
     if val == 1:
-      return 'Voicemeeter'
+      return 'basic'
     elif val == 2:
-      return 'Voicemeeter Banana'
+      return 'banana'
     elif val == 3:
-      return 'Voicemeeter Potato'
+      return 'potato'
     else:
-      raise VMRError(f'Unexpected VM type: {val}')
+      raise VMRError(f'Unexpected Voicemeeter type: {val}')
 
   @property
   def version(self):
@@ -89,19 +90,23 @@ class VMRemote:
     self._logout()
 
 
-class VMBasicRemote(VMRemote):
-  def __init__(self, *args, **kwargs):
-    super().__init__(*args, **kwargs)
-    raise NotImplementedError()
+def _make_remote(kind):
+  def init(self, *args, **kwargs):
+    VMRemote.__init__(self, *args, **kwargs)
+    self.kind = kind
+    self.num_A, self.num_B = kind.layout
+    self.inputs = [InputStrip.make((i < self.num_A), self, i) for i in range(self.num_A+self.num_B)]
+    self.outputs = [OutputBus.make((i < self.num_B), self, i) for i in range(self.num_A+self.num_B)]
+  return type(f'VMRemote{kind.name}', (VMRemote,), {
+    '__init__': init
+  })
 
-class VMBananaRemote(VMRemote):
-  def __init__(self, *args, **kwargs):
-    super().__init__(*args, **kwargs)
-    self.inputs = [InputStrip.make((i < 3), 'banana', self, i) for i in range(3+2)]
-    self.outputs = [OutputBus.make((i < 3), self, i) for i in range(3+2)]
+_remotes = {kind.id: _make_remote(kind) for kind in kinds.all}
 
-class VMPotatoRemote(VMRemote):
-  def __init__(self, *args, **kwargs):
-    super().__init__(*args, **kwargs)
-    self.inputs = [InputStrip.make((i < 5), 'potato', self, i) for i in range(5+3)]
-    self.outputs = [OutputBus.make((i < 5), self, i) for i in range(5+3)]
+def connect(kind_id, *args, **kwargs):
+  try:
+    cls = _remotes[kind_id]
+    return cls(*args, **kwargs)
+  except KeyError as err:
+    print(err)
+    raise VMRError(f'Invalid Voicemeeter kind: {kind_id}')
