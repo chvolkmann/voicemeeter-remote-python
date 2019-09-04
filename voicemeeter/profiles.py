@@ -5,8 +5,6 @@ from .errors import VMRError
 from .util import project_path, merge_dicts
 
 profiles = {}
-  
-
 
 def _make_blank_profile(kind):
   num_A, num_B = kind.layout
@@ -37,18 +35,13 @@ def _make_base_profile(kind):
   abc = merge_dicts(blank, overrides)
   return abc
 
-def _resolve(kind, nameOrDict):
-  try:
-    return profiles[kind][nameOrDict] if isinstance(nameOrDict, str) else nameOrDict
-  except KeyError:
-    raise VMRError(f'Profile not found: {kind}#{nameOrDict}')
-
 for kind in kinds.all:
   profiles[kind.id] = {
     'blank': _make_blank_profile(kind),
     'base': _make_base_profile(kind)
   }
 
+# Load profiles from config files in profiles/<kind_id>/<profile>.toml
 if os.path.exists(project_path('profiles')):
   for kind in kinds.all:
     profile_folder = project_path('profiles', kind.id)

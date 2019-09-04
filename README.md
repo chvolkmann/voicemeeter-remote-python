@@ -146,7 +146,7 @@ Any property is gettable and settable.
 `True` iff UI parameters have been updated. Use this if to poll for UI updates.
 
 #### `vmr.get(param_name, string=False)`
-Calls the C API's parameter getters, `GetParameterFloat` or `GetParameterStringW` respectively.
+Calls the C API's parameter getters, `GetParameterFloat` or `GetParameterStringW` respectively. Tries to cache the value on the first call and updates the cached value if `vmr.dirty` is `True`.
 
 #### `vmr.set(param_name, value)`
 Calls the C API's parameter getters, `SetParameterFloat` or `SetParameterStringW` respectively.
