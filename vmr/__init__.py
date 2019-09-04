@@ -4,6 +4,7 @@ from .remote import connect
 from .driver import vm_subpath
 
 def open(delay=1):
+  """ Starts Voicemeeter. """
   sp.Popen([vm_subpath('voicemeeter8.exe')])
   time.sleep(delay)
 

@@ -1,6 +1,10 @@
 from collections import namedtuple
 from .errors import VMRError
 
+"""
+Represents a major version of Voicemeeter and describes
+its strip layout.
+"""
 VMKind = namedtuple('VMKind', ['id', 'name', 'layout'])
 
 _kind_map = {

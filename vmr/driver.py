@@ -17,6 +17,7 @@ DLL_NAME = 'VoicemeeterRemote64.dll'
 vm_base = path.join(path.expandvars('%ProgramFiles(x86)%'), 'VB', 'Voicemeeter')
 
 def vm_subpath(*fragments):
+  """ Returns a path based from Voicemeeter's install directory. """
   return path.join(vm_base, *fragments)
 
 dll_path = vm_subpath(DLL_NAME)

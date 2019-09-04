@@ -3,14 +3,17 @@ from .strip import VMElement, bool_prop, str_prop, float_prop
 from . import kinds
 
 class InputStrip(VMElement):
+  """ Base class for input strips. """
   @classmethod
   def make(cls, is_physical, remote, index, **kwargs):
+    """
+    Factory function for input strips.
+
+    Returns a physical/virtual strip for the remote's kind.
+    """
     PhysStrip, VirtStrip = _strip_pairs[remote.kind.id]
     IS_cls = PhysStrip if is_physical else VirtStrip
     return IS_cls(remote, index, **kwargs)
-
-  def __init__(self, remote, index):
-    super().__init__(remote, index)
 
   @property
   def identifier(self):
@@ -26,6 +29,7 @@ class InputStrip(VMElement):
   label = str_prop('Label')
 
   def apply(self, mapping):
+    """ Sets all parameters of a dict for the strip. """
     for key, val in mapping.items():
       setattr(self, key, val)
   
@@ -37,6 +41,7 @@ class VirtualInputStrip(InputStrip):
 
 
 def _make_strip_mixin(kind):
+  """ Creates a mixin with the kind's strip layout set as class variables. """
   num_A, num_B = kind.layout
   return type(f'StripMixin{kind.name}', (), {
     **{f'A{i}': bool_prop(f'A{i}') for i in range(1, num_A+1)},
@@ -46,6 +51,7 @@ def _make_strip_mixin(kind):
 _strip_mixins = {kind.id: _make_strip_mixin(kind) for kind in kinds.all}
 
 def _make_strip_pair(kind):
+  """ Creates a PhysicalInputStrip and a VirtualInputStrip of a kind. """
   StripMixin = _strip_mixins[kind.id]
   PhysStrip = type(f'PhysicalInputStrip{kind.name}', (PhysicalInputStrip, StripMixin), {})
   VirtStrip = type(f'VirtualInputStrip{kind.name}', (VirtualInputStrip, StripMixin), {})
