@@ -2,32 +2,30 @@ import os
 import toml
 from . import kinds
 from .errors import VMRError
-from .util import project_path
+from .util import project_path, merge_dicts
 
 profiles = {}
   
-def _merge_dicts(*srcs, dest={}):
-  target = dest
-  for src in srcs:
-    for key, val in src.items():
-      if isinstance(val, dict):
-        node = target.setdefault(key, {})
-        _merge_dicts(val, dest=node)
-      else:
-        target[key] = val
-  return target
+
 
 def _make_blank_profile(kind):
   num_A, num_B = kind.layout
   input_strip_config = {
-    'Gain': 1.0,
-    'Mono': False,
-    'Solo': False,
-    'Mute': False,
+    'gain': 0.0,
+    'solo': False,
+    'mute': False,
+    'mono': False,
     **{f'A{i}': False for i in range(1, num_A+1)},
     **{f'B{i}': False for i in range(1, num_B+1)}
   }
-  return {f'in-{i}': input_strip_config for i in range(num_A+num_B)}
+  output_strip_config = {
+    'gain': 0.0,
+    'mute': False
+  }
+  return {
+    **{f'in-{i}': input_strip_config for i in range(num_A+num_B)},
+    **{f'out-{i}': output_strip_config for i in range(num_A+num_B)}
+  }
 
 def _make_base_profile(kind):
   num_A, num_B = kind.layout
@@ -36,7 +34,8 @@ def _make_base_profile(kind):
     **{f'in-{i}': dict(B1=True) for i in range(num_A)},
     **{f'in-{i}': dict(A1=True) for i in range(num_A, num_A+num_B)}
   }
-  return _merge_dicts(blank, overrides)
+  abc = merge_dicts(blank, overrides)
+  return abc
 
 def _resolve(kind, nameOrDict):
   try:

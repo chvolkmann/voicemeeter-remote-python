@@ -8,6 +8,7 @@ from .input import InputStrip
 from .output import OutputBus
 from . import kinds
 from . import profiles
+from .util import merge_dicts
 
 class VMRemote(abc.ABC):
   """ Wrapper around Voicemeeter Remote's C API. """
@@ -118,7 +119,12 @@ class VMRemote(abc.ABC):
   
   def apply_profile(self, name):
     try:
-      self.apply(self.profiles[name])
+      profile = self.profiles[name]
+      if 'extends' in profile:
+        base = self.profiles[profile['extends']]
+        profile = merge_dicts(base, profile)
+        del profile['extends']
+      self.apply(profile)
     except KeyError:
       raise VMRError(f'Unknown profile: {self.kind.id}/{name}')
 

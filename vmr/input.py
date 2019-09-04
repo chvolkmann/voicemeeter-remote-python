@@ -27,17 +27,12 @@ class InputStrip(VMElement):
   gate = float_prop('Gate', range=(0,10))
 
   label = str_prop('Label')
-
-  def apply(self, mapping):
-    """ Sets all parameters of a dict for the strip. """
-    for key, val in mapping.items():
-      setattr(self, key, val)
   
 class PhysicalInputStrip(InputStrip):
   mono = bool_prop('Mono')
 
 class VirtualInputStrip(InputStrip):
-  mc = bool_prop('MC')
+  mono = bool_prop('MC')
 
 
 def _make_strip_mixin(kind):

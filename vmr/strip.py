@@ -1,4 +1,5 @@
 import abc
+from .errors import VMRError
 
 class VMElement(abc.ABC):
   """ Base class for InputStrip and OutputBus. """
@@ -16,6 +17,13 @@ class VMElement(abc.ABC):
   @abc.abstractmethod
   def identifier(self):
     pass
+  
+  def apply(self, mapping):
+    """ Sets all parameters of a dict for the strip. """
+    for key, val in mapping.items():
+      if not hasattr(self, key):
+        raise VMRError(f'Invalid {self.identifier} attribute: {key}')
+      setattr(self, key, val)
     
 
 def bool_prop(param):
@@ -34,17 +42,19 @@ def str_prop(param):
     return self.set(param, val)
   return property(getter, setter)
 
-def float_prop(param, range=None):
+def float_prop(param, range=None, normalize=False):
   """ A floating point VM parameter. """
   def getter(self):
     val = self.get(param)
     if range:
       lo, hi = range
-      val = (val-lo)/(hi-lo)
+      if normalize:
+        val = (val-lo)/(hi-lo)
     return val
   def setter(self, val):
     if range:
       lo, hi = range
-      val = val*(hi-lo)+lo
+      if normalize:
+        val = val*(hi-lo)+lo
     return self.set(param, val)
   return property(getter, setter)
