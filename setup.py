@@ -6,6 +6,6 @@ setup(
   description='Voicemeeter Remote',
   packages=['vmr'],
   install_requires=[
-    
+    'toml'
   ]
 )

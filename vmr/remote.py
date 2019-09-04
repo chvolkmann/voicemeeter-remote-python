@@ -1,13 +1,15 @@
 import ctypes as ct
 import time
+import abc
 
 from .driver import dll
 from .errors import VMRError, VMRDriverError
 from .input import InputStrip
 from .output import OutputBus
 from . import kinds
+from . import profiles
 
-class VMRemote:
+class VMRemote(abc.ABC):
   """ Wrapper around Voicemeeter Remote's C API. """
   def __init__(self, delay=.015):
     self.delay = delay
@@ -33,7 +35,7 @@ class VMRemote:
     self._call('Logout')
   
   @property
-  def kind(self):
+  def type(self):
     """ Returns the type of Voicemeeter installation (basic, banana, potato). """
     buf = ct.c_long()
     self._call('GetVoicemeeterType', ct.byref(buf))
@@ -66,7 +68,6 @@ class VMRemote:
   
   def get(self, param, string=False):
     """ Retrieves a parameter. """
-    print('GET', param)
     param = param.encode('ascii')
     if not self.dirty:
       if param in self.cache:
@@ -84,7 +85,6 @@ class VMRemote:
   
   def set(self, param, val):
     """ Updates a parameter. """
-    print('SET', param)
     param = param.encode('ascii')
     if isinstance(val, str):
       if len(val) >= 512:
@@ -115,6 +115,15 @@ class VMRemote:
       else:
         raise ValueError(strip)
       target.apply(submapping)
+  
+  def apply_profile(self, name):
+    try:
+      self.apply(self.profiles[name])
+    except KeyError:
+      raise VMRError(f'Unknown profile: {self.kind.id}/{name}')
+
+  def reset(self):
+    self.apply_profile('base')
 
   def __enter__(self):
     self._login()
@@ -134,10 +143,14 @@ def _make_remote(kind):
     VMRemote.__init__(self, *args, **kwargs)
     self.kind = kind
     self.num_A, self.num_B = kind.layout
-    self.inputs = [InputStrip.make((i < self.num_A), self, i) for i in range(self.num_A+self.num_B)]
-    self.outputs = [OutputBus.make((i < self.num_B), self, i) for i in range(self.num_A+self.num_B)]
+    self.inputs = tuple(InputStrip.make((i < self.num_A), self, i) for i in range(self.num_A+self.num_B))
+    self.outputs = tuple(OutputBus.make((i < self.num_B), self, i) for i in range(self.num_A+self.num_B))
+  def get_profiles(self):
+    return profiles.profiles[kind.id]
+ 
   return type(f'VMRemote{kind.name}', (VMRemote,), {
-    '__init__': init
+    '__init__': init,
+    'profiles': property(get_profiles)
   })
 
 _remotes = {kind.id: _make_remote(kind) for kind in kinds.all}
