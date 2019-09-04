@@ -80,8 +80,15 @@ class VMRemote:
       self._call('SetParameterStringW', param, ct.c_wchar_p(val))
     else:
       self._call('SetParameterFloat', param, ct.c_float(float(val)))
-  
-  def apply(self, **mapping):
+
+  def show(self):
+    self.set('Command.Show', 1)
+  def shutdown(self):
+    self.set('Command.Shutdown', 1)
+  def restart(self):
+    self.set('Command.Restart', 1)
+
+  def apply(self, mapping):
     for key, submapping in mapping.items():
       strip, index = key.split('-')
       index = int(index)
@@ -91,7 +98,7 @@ class VMRemote:
         target = self.outputs[index]
       else:
         raise ValueError(strip)
-      target.apply(**submapping)
+      target.apply(submapping)
 
   def __enter__(self):
     self._login()

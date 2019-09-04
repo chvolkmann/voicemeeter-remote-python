@@ -1,6 +1,24 @@
 import vmr
 import time
 
+profiles = {
+  'default': {
+    **{f'in-{i}': vmr.blank_input for i in range(8)}
+  },
+  'main': {
+    **{f'in-{i}': dict(A1=True) for i in range(8)}
+  },
+  'vr': {
+    **{f'in-{i}': dict(A4=True) for i in range(5,8)}
+  },
+  'vr-tv': {
+    **{f'in-{i}': dict(A2=True, A4=True) for i in range(5,8)}
+  }
+}
+
+def resolve(nameOrDict):
+  return profiles[nameOrDict] if isinstance(nameOrDict, str) else nameOrDict
+
 def merge(target, *srcs):
   for src in srcs:
     for key, val in src.items():
@@ -11,23 +29,15 @@ def merge(target, *srcs):
         target[key] = val
   return target
 
-profiles = {
-  '_default': {
-    **{f'in-{i}': vmr.input_strip_config for i in range(8)}
-  },
-  'main': {
-    'in-5': dict(A1=True)
-  },
-  'test': {
-    **{f'in-{i}': dict(A4=True, A5=True) for i in range(8)}
-  }
-}
+def profile(target, base='default'):
+  base = base or {}
+  return merge({}, resolve(base), resolve(target))
 
-def profile(target):
-  dict = profiles[target] if isinstance(target, str) else target
-  return merge({}, profiles['_default'], dict)
+profiles['blank'] = profile(vmr.blank, base=None)
+profiles['default'] = profile({f'in-{i}': dict(A1=True) for i in range(5,8)})
 
+vmr.open()
 with vmr.connect('potato') as remote:
-  remote.apply(**profile('test'))
+  remote.apply(profile('vr-tv', base='blank'))
   time.sleep(1)
-  remote.apply(**profile('_default'))
+  remote.apply(profile('default'))

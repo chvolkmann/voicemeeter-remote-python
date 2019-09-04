@@ -15,7 +15,11 @@ if os != 'Windows' or bits != 64:
 DLL_NAME = 'VoicemeeterRemote64.dll'
 
 vm_base = path.join(path.expandvars('%ProgramFiles(x86)%'), 'VB', 'Voicemeeter')
-dll_path = path.join(vm_base, DLL_NAME)
+
+def vm_subpath(*fragments):
+  return path.join(vm_base, *fragments)
+
+dll_path = vm_subpath(DLL_NAME)
 
 if not path.exists(dll_path):
   raise VMRError(f'Could not find {DLL_NAME}')

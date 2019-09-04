@@ -25,7 +25,7 @@ class InputStrip(VMElement):
 
   label = str_prop('Label')
 
-  def apply(self, **mapping):
+  def apply(self, mapping):
     for key, val in mapping.items():
       setattr(self, key, val)
   
