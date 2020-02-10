@@ -3,6 +3,8 @@ A Python API to [Voicemeeter](https://www.vb-audio.com/Voicemeeter/potato.htm), 
 
 This work-in-progress package wraps the [Voicemeeter Remote C API](https://forum.vb-audio.com/viewtopic.php?f=8&t=346) and provides a higher-level interface for developers.
 
+Tested against Voicemeeter Potato, release from September 2019.
+
 
 ## Prerequisites
 - Voicemeeter 1 (Basic), 2 (Banana) or 3 (Potato)
