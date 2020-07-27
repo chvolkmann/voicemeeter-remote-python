@@ -161,7 +161,7 @@ def _make_remote(kind):
 
 _remotes = {kind.id: _make_remote(kind) for kind in kinds.all}
 
-def connect(kind_id, delay=None):
+def connect(kind_id, delay=.015):
   """ Connect to Voicemeeter and sets its strip layout. """
   try:
     cls = _remotes[kind_id]
