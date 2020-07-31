@@ -27,6 +27,8 @@ class InputStrip(VMElement):
   gate = float_prop('Gate', range=(0,10))
 
   label = str_prop('Label')
+  device = str_prop('device.name')
+  sr = str_prop('device.sr')
   
 class PhysicalInputStrip(InputStrip):
   mono = bool_prop('Mono')
