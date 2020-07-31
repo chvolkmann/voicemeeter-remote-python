@@ -10,6 +10,8 @@ from . import kinds
 from . import profiles
 from .util import merge_dicts
 
+loggedIn = False
+
 class VMRemote(abc.ABC):
   """ Wrapper around Voicemeeter Remote's C API. """
   def __init__(self, delay=.015):
@@ -31,9 +33,15 @@ class VMRemote(abc.ABC):
     return retval
 
   def _login(self):
-    self._call('Login')
+    global loggedIn
+    if(loggedIn == False):
+      self._call('Login')
+      loggedIn = True
   def _logout(self):
     self._call('Logout')
+    
+  def logout(self):
+    self._logout()
   
   @property
   def type(self):
@@ -135,7 +143,7 @@ class VMRemote(abc.ABC):
     self._login()
     return self
   def __exit__(self, type, value, traceback):
-    self._logout()
+    pass
 
 
 def _make_remote(kind):
@@ -161,7 +169,7 @@ def _make_remote(kind):
 
 _remotes = {kind.id: _make_remote(kind) for kind in kinds.all}
 
-def connect(kind_id, delay=None):
+def connect(kind_id, delay=.015):
   """ Connect to Voicemeeter and sets its strip layout. """
   try:
     cls = _remotes[kind_id]
