@@ -42,7 +42,8 @@ class VMRemote(abc.ABC):
     
   def logout(self):
     self._logout()
-  
+
+
   @property
   def type(self):
     """ Returns the type of Voicemeeter installation (basic, banana, potato). """
@@ -80,7 +81,8 @@ class VMRemote(abc.ABC):
     param = param.encode('ascii')
     if not self.dirty:
       if param in self.cache:
-        return self.cache[param]
+        pass
+        #return self.cache[param]
 
     if string:
       buf = (ct.c_wchar * 512)()
@@ -169,7 +171,7 @@ def _make_remote(kind):
 
 _remotes = {kind.id: _make_remote(kind) for kind in kinds.all}
 
-def connect(kind_id, delay=null):
+def connect(kind_id, delay=None):
   if delay is None:
     delay = .015
   """ Connect to Voicemeeter and sets its strip layout. """
