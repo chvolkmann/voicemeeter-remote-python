@@ -138,6 +138,94 @@ class VMRemote(abc.ABC):
     except KeyError:
       raise VMRError(f'Unknown profile: {self.kind.id}/{name}')
 
+  def button_setStatus(self, nuLogical, state, mode=2):
+    c_nuLogical = ct.c_long(nuLogical)
+    c_state = ct.c_float(state)
+    c_mode = ct.c_long(mode)
+    
+    self._call('MacroButton_SetStatus', c_nuLogical, c_state, c_mode)
+    
+  def button_getStatus(self, nuLogical, mode=2):
+    c_nuLogical = ct.c_long(nuLogical)
+    c_state = ct.c_float(0)
+    c_mode = ct.c_long(mode)
+    
+    retval = self._call('MacroButton_GetStatus', c_nuLogical, ct.byref(c_state), c_mode)
+    return int(c_state.value)
+    
+  def button_state(self, nuLogical, state):
+    mode = 1
+    self.button_setStatus(nuLogical, state, mode)
+    
+  def button_stateOnly(self, nuLogical, state):
+    mode = 2
+    self.button_setStatus(nuLogical, state, mode)
+    
+  def button_trigger(self, nuLogical, state):
+    mode = 3
+    self.button_setStatus(nuLogical, state, mode)
+    
+  def show_VBANchat(self, state):
+    if state not in range(2):
+        raise VMRError('State must be 0 or 1')
+    self.show()
+    self.set('Command.DialogShow.VBANCHAT', state)
+
+ 
+  def recorder_play(self , state:int=1):
+    self.set('recorder.play', state)
+   
+  def recorder_stop(self, state:int=1):
+    self.set('recorder.stop', state)
+     
+  def recorder_pause(self , state:int=1):
+    self.set('recorder.pause', state)
+     
+  def recorder_replay(self , state:int=1):
+    self.set('recorder.replay', state)
+     
+  def recorder_record(self , state:int=1):
+    self.set('recorder.record', state)
+     
+  def recorder_loop(self, state:int=1):
+    self.set('Recorder.mode.Loop', state)
+    
+  def recorder_ff(self, state:int=1):
+    self.set('recorder.ff', state)
+    
+  def recorder_rw(self, state:int=1):
+    self.set('recorder.rew', state)
+    
+  def recorder(self, action, state:int=1):
+    method = 'self.recorder_' + action  
+    if state not in range(2):
+        raise VMRError('State must be 0 or 1')
+        
+    try:
+      eval(method)(state)
+    except AttributeError:
+      raise VMRError('Recorder function not supported')
+      
+  def recorderS_out(self, bus:str, state:int):
+    bus_type, number = bus.split('-')
+    num_physical, num_virtual = self.kind[2]
+    
+    if bus_type == 'A' and int(number) in range(num_physical):
+      target = 'recorder.A'  + str(number)
+    elif bus_type == 'B' and int(number) in range(num_virtual):
+      target = 'recorder.B'  + str(number)      
+    else:
+      raise VMRError('Strip/Bus out of range')
+
+    self.set(target, state)
+
+  def recorderS_load(self, file):
+    try:
+      self.set('Recorder.load', file)
+    except UnicodeError:
+      raise VMRError('File full directory must be a raw string')
+
+
   def reset(self):
     self.apply_profile('base')
 
