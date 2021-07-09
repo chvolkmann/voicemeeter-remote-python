@@ -38,7 +38,10 @@ class VMRemote(abc.ABC):
       self._call('Login')
       loggedIn = True
   def _logout(self):
-    self._call('Logout')
+    global loggedIn
+    if(loggedIn == True):
+      self._call('Logout')
+      loggedIn = False
     
   def logout(self):
     self._logout()
@@ -145,7 +148,7 @@ class VMRemote(abc.ABC):
     self._login()
     return self
   def __exit__(self, type, value, traceback):
-    pass
+    self.logout()
 
 
 def _make_remote(kind):
