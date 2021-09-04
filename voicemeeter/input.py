@@ -25,7 +25,7 @@ class InputStrip(VMElement):
   gain = float_prop('Gain', range=(-60,12))
   comp = float_prop('Comp', range=(0,10))
   gate = float_prop('Gate', range=(0,10))
-  gate = float_prop('Gate', range=(0,10))
+  limit = float_prop('Limit', range=(-40,10))
 
   label = str_prop('Label')
   device = str_prop('device.name')
