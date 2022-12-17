@@ -162,6 +162,9 @@ Any property is gettable and settable.
 - `solo`: boolean
 - `mute`: boolean
 - `gain`: float, from -60.0 to 12.0
+- `eqgain1`: float, from -12.0 to 12.0
+- `eqgain2`: float, from -12.0 to 12.0
+- `eqgain3`: float, from -12.0 to 12.0
 - `comp`: float, from 0.0 to 10.0
 - `gate`: float, from 0.0 to 10.0
 - Output mapping (e.g. `A1`, `B3`, etc.): boolean, depends on the Voicemeeter kind
